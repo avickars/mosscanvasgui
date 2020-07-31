@@ -1,3 +1,7 @@
 # MossCanvasGUI
 
-test
+## Dependencies
+- dash
+- canvasapi
+- dash-bootstrap-components
+- pandas

@@ -2,8 +2,9 @@ import dash
 import dash_html_components as html
 import dash_bootstrap_components as dbc
 from canvas.canvas_class import canvas
-from sidebars.sidebar1 import settings, courses, assignments, languages, fileExtensions
-from sidebars.sidebar2 import dtTable
+from columns.left_bar import settings, courses, assignments, languages, fileExtensions
+from columns.center_bar import dtTable
+from columns.sidebar3 import execute, results
 from dash.dependencies import Input, Output, State
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
@@ -33,7 +34,8 @@ app.layout = html.Div(children=[
         html.Div(html.Div(children=[
             courses(canvasObject), html.Br(), assignments(), html.Br(), languages(), html.Br(), fileExtensions(), html.Br(), settings(canvasObject)
         ], id="col-1", className="column"), className="col-outer", id="col-outer1"),
-        html.Div(html.Div(children=[dtTable()], id="col-2"), className="col-outer", id="col-outer2")
+        html.Div(html.Div(children=[dtTable()], id="col-2"), className="col-outer", id="col-outer2"),
+        html.Div(html.Div(children=[execute(), html.Br(), results()], id="col-3", className='column'), className="col-outer", id="col-outer3")
     ])
 ], id="base")
 
@@ -97,6 +99,7 @@ def updateAssignmentsDropdown(value):
     # print(value)
     return canvasObject.getAssignments(value)
 
+
 # Changes the datatable when one of the outputs is changed
 @app.callback(
     [Output('datatable', 'data'), Output('datatable', 'columns')],
@@ -109,6 +112,49 @@ def updateAssignmentsDropdown(value):
 def updateTableData(courseNumber, assignmentNumber, languageValue, fileExtensionValue):
     df = canvasObject.getSubmissions(courseNumber, assignmentNumber, languageValue, fileExtensionValue)
     return df.to_dict('records'), [{"name": i, "id": i} for i in df.columns]
+
+
+# This callback updates the run button to be clickable when there is data contained in the data table.
+@app.callback(
+    Output('execute-button', 'disabled'),
+    [Input('datatable', "derived_virtual_data")]
+)
+def enableExecuteButton(rows):
+    if rows is None:
+        return True
+
+    for row in rows:
+        if row != {'Error': 'At least one of Course, Assignment, Language, or File Extension has not been selected'} and row != {'Error': "No Canvas Key or Invalid Canvas Key "
+                                                                                                                                          "Detected"}:
+            return False
+    return True
+
+
+# This call back executes when the run button is clicked.  It will download the assignments and then run them through Moss.
+@app.callback(
+    Output("results", "children"),
+    [
+        Input("execute-button", "n_clicks"),
+        Input('datatable', "derived_virtual_data"),
+        Input('datatable', "derived_virtual_selected_rows"),
+        Input('course-dropdown', 'value'),
+        Input('assignment-dropdown', 'value'),
+        Input('language-dropdown', 'value'),
+        Input('fileExtension-input', 'value')
+    ]
+)
+def executeFileSimilarity(numClicks, data, selectedRows, courseValue, assignmentValue, languageValue, fileExtensionValue):
+    if numClicks is None:
+        print("Not executed ")
+        return f"Clicked 0 times."
+    if numClicks > 0:
+        if len(selectedRows) > 0:
+            canvasObject.downLoadSubmissions([data[i] for i in selectedRows], courseValue, assignmentValue, languageValue, fileExtensionValue)
+
+        else:
+            canvasObject.downLoadSubmissions(data,  courseValue, assignmentValue, languageValue, fileExtensionValue)
+        return f"Clicked {numClicks} times."
+
 
 
 # Start the Dash server

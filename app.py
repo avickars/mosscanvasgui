@@ -3,7 +3,7 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 from canvas.canvas_class import canvas
 from columns.left_bar import settings, courses, assignments, languages, fileExtensions
-from columns.center_bar import dtTable, tabTable
+from columns.center_bar import dtTable
 from columns.right_bar3 import execute, results, mossSideBar, placeHolderToggle, results2
 from dash.dependencies import Input, Output, State
 from local.local_class import local
@@ -38,7 +38,7 @@ app.layout = html.Div(children=[
         html.Div(html.Div(children=[
             courses(canvasObject), html.Br(), assignments(), html.Br(), languages(), html.Br(), fileExtensions(), html.Br(), settings(canvasObject)
         ], id="col-1", className="column"), className="col-outer", id="col-outer1"),
-        html.Div(html.Div(children=[tabTable()], id="col-2"), className="col-outer", id="col-outer2"),
+        html.Div(html.Div(children=[dtTable()], id="col-2"), className="col-outer", id="col-outer2"),
         html.Div(html.Div(children=[execute(), html.Br(), mossSideBar(), html.Br(), placeHolderToggle(), html.Br(), results(), results2()], id="col-3", className='column'),
                  className="col-outer", id="col-outer3")
     ])

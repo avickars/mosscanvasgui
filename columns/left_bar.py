@@ -2,6 +2,8 @@ import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 from canvas.canvas_class import canvas
+
+
 # from canvas.canvasKey import readKey
 # from canvas.canvasMethods import getCourses, getAssignments
 
@@ -152,7 +154,30 @@ def settings(canvas):
                             dbc.Button("Close", id="close-canvas-key-model", className="ml-auto")
                         ),
                     ], id="canvas-key-modal"),
-                    html.Div(id="canvas-key-hidden")
+                    html.Br(),
+                    html.Br(),
+                    html.H6("Source"),
+                    html.Small("What is this?", id="open-local-model"),
+                    dbc.Modal(children=[
+                        dbc.ModalHeader("What form does this need to be in?"),
+                        dbc.ModalBody(children=[
+                            "Needs to have the form that:",
+                        ]),
+                        dbc.ModalFooter(
+                            dbc.Button("Close", id="close-local-model", className="ml-auto")
+                        ),
+                    ], id="local-modal"),
+                    dcc.RadioItems(
+                        options=[{'label': 'Local', 'value': 'local'}, {'label': 'Canvas', 'value': 'canvas'}],
+                        id='local-select',
+                        value='canvas'
+                    ),
+                    dbc.RadioItems(
+                        options=[{'label': 'By File', 'value': 'File', 'disabled': True}, {'label': 'By Directory', 'value': 'directory', 'disabled': True}],
+                        id='directory-select',
+                        value='directory'
+                    ),
+                    dcc.Input(placeholder="path", id="assignment-path", className='user-inputs', disabled=True)
                 ]),
                 id="collapse-2"
             ),

@@ -4,11 +4,15 @@ import dash_bootstrap_components as dbc
 from canvas.canvas_class import canvas
 from columns.left_bar import settings, courses, assignments, languages, fileExtensions
 from columns.center_bar import dtTable
-from columns.sidebar3 import execute, results
+from columns.right_bar3 import execute, results, mossSideBar, placeHolderToggle, results2
 from dash.dependencies import Input, Output, State
+from local.local_class import local
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+
 canvasObject = canvas()
+
+localObject = local()
 
 navBar = dbc.Navbar(children=[
     html.A(
@@ -35,7 +39,8 @@ app.layout = html.Div(children=[
             courses(canvasObject), html.Br(), assignments(), html.Br(), languages(), html.Br(), fileExtensions(), html.Br(), settings(canvasObject)
         ], id="col-1", className="column"), className="col-outer", id="col-outer1"),
         html.Div(html.Div(children=[dtTable()], id="col-2"), className="col-outer", id="col-outer2"),
-        html.Div(html.Div(children=[execute(), html.Br(), results()], id="col-3", className='column'), className="col-outer", id="col-outer3")
+        html.Div(html.Div(children=[execute(), html.Br(), mossSideBar(), html.Br(), placeHolderToggle(), html.Br(), results(), results2()], id="col-3", className='column'),
+                 className="col-outer", id="col-outer3")
     ])
 ], id="base")
 
@@ -100,41 +105,93 @@ def updateAssignmentsDropdown(value):
     return canvasObject.getAssignments(value)
 
 
+# @app.callback(
+#     [Output('datatable', 'data'),
+#      Output('datatable', 'columns')],
+#     [Input("assignment-path", 'value'),
+#      Input('language-dropdown', 'value'),
+#      Input('fileExtension-input', 'value')]
+# )
+# def dataTableLocal(path, languageValue, fileExtensionValues):
+#     localObject.changePath(path)
+#     df = localObject.getSubmissions(fileExtensionValues, languageValue)
+#     # df = canvasObject.getSubmissions(courseNumber, assignmentNumber, languageValue, fileExtensionValue)
+#     return df.to_dict('records'), [{"name": i, "id": i} for i in df.columns]
+
+
 # Changes the datatable when one of the outputs is changed
 @app.callback(
     [Output('datatable', 'data'), Output('datatable', 'columns')],
-    # Output('temp', 'children'),
     [Input('course-dropdown', 'value'),
      Input('assignment-dropdown', 'value'),
      Input('language-dropdown', 'value'),
-     Input('fileExtension-input', 'value')]
+     Input('fileExtension-input', 'value'),
+     Input('local-select', 'value'),
+     Input("assignment-path", 'value')]
 )
-def updateTableData(courseNumber, assignmentNumber, languageValue, fileExtensionValue):
-    df = canvasObject.getSubmissions(courseNumber, assignmentNumber, languageValue, fileExtensionValue)
-    return df.to_dict('records'), [{"name": i, "id": i} for i in df.columns]
+def updateTableData(courseNumber, assignmentNumber, languageValue, fileExtensionValue, localCanvasValue, assignmentPath):
+    if localCanvasValue == 'canvas':
+        df = canvasObject.getSubmissions(courseNumber, assignmentNumber, languageValue, fileExtensionValue)
+        return df.to_dict('records'), [{"name": i, "id": i} for i in df.columns]
+    else:
+        localObject.changePath(assignmentPath)
+        df = localObject.getSubmissions(fileExtensionValue, languageValue)
+        return df.to_dict('records'), [{"name": i, "id": i} for i in df.columns]
 
 
 # This callback updates the run button to be clickable when there is data contained in the data table.
 @app.callback(
-    Output('execute-button', 'disabled'),
-    [Input('datatable', "derived_virtual_data")]
+    [Output('download-button', 'disabled'), Output('run-moss', 'disabled')],
+    [Input('datatable', "derived_virtual_data"), Input('local-select', 'value')]
 )
-def enableExecuteButton(rows):
-    if rows is None:
-        return True
+def enableExecuteButton(rows, localCanvas):
+    if localCanvas == 'canvas':
+        if rows is None:
+            return True, True
 
-    for row in rows:
-        if row != {'Error': 'At least one of Course, Assignment, Language, or File Extension has not been selected'} and row != {'Error': "No Canvas Key or Invalid Canvas Key "
-                                                                                                                                          "Detected"}:
-            return False
-    return True
+        for row in rows:
+            if row != {'Error': 'At least one of Course, Assignment, Language, or File Extension has not been selected'} and row != {'Error': "No Canvas Key or Invalid Canvas Key "
+                                                                                                                                              "Detected"}:
+                return False, False
+        return True, True
+    else:
+        if rows is None:
+            return True, True
+        for row in rows:
+            if row == {"Error": 'At least one of Language or File Extension has not been selected'} or row == {"Error": 'Invalid Path'}:
+                return True, True
+        return True, False
+
+
+# This call back downloads the assignments
+@app.callback(
+    Output("results", "children"),
+    [
+        Input("download-button", "n_clicks"),
+        Input('datatable', "derived_virtual_data"),
+        Input('datatable', "derived_virtual_selected_rows"),
+        Input('course-dropdown', 'value'),
+        Input('assignment-dropdown', 'value'),
+        Input('fileExtension-input', 'value')
+    ]
+)
+def executeFileSimilarity(numClicks, data, selectedRows, courseValue, assignmentValue, fileExtensionValue):
+    if numClicks is None:
+        print("Not executed ")
+        return f"Clicked 0 times."
+    if numClicks > 0:
+        if len(selectedRows) > 0:
+            location = canvasObject.downloadSubmissions([data[i] for i in selectedRows], courseValue, assignmentValue, fileExtensionValue)
+        else:
+            location = canvasObject.downloadSubmissions(data, courseValue, assignmentValue, fileExtensionValue)
+        return f"Clicked {numClicks} times."
 
 
 # This call back executes when the run button is clicked.  It will download the assignments and then run them through Moss.
 @app.callback(
-    Output("results", "children"),
+    Output("results2", "children"),
     [
-        Input("execute-button", "n_clicks"),
+        Input("run-moss", "n_clicks"),
         Input('datatable', "derived_virtual_data"),
         Input('datatable', "derived_virtual_selected_rows"),
         Input('course-dropdown', 'value'),
@@ -149,12 +206,60 @@ def executeFileSimilarity(numClicks, data, selectedRows, courseValue, assignment
         return f"Clicked 0 times."
     if numClicks > 0:
         if len(selectedRows) > 0:
-            canvasObject.downLoadSubmissions([data[i] for i in selectedRows], courseValue, assignmentValue, languageValue, fileExtensionValue)
-
+            canvasObject.moss([data[i] for i in selectedRows], courseValue, assignmentValue,languageValue, fileExtensionValue)
+            return f"Clicked {numClicks} times."
         else:
-            canvasObject.downLoadSubmissions(data,  courseValue, assignmentValue, languageValue, fileExtensionValue)
-        return f"Clicked {numClicks} times."
+            canvasObject.moss(data, courseValue, assignmentValue, languageValue, fileExtensionValue)
+            return f"Clicked {numClicks} times."
 
+
+# Callback for right side bar collapse
+@app.callback(
+    [Output(f"right-collapse-{i}", "is_open") for i in range(1, 3)],
+    [Input(f"right-group-{i}-toggle", "n_clicks") for i in range(1, 3)],
+    [State(f"right-collapse-{i}", "is_open") for i in range(1, 3)],
+)
+def toggle_accordion(n1, n2, is_open1, is_open2):
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        return False, False
+    else:
+        button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+
+    if button_id == "right-group-1-toggle" and n1:
+        return not is_open1, False
+    elif button_id == "right-group-2-toggle" and n2:
+        return False, not is_open2
+    else:
+        return False, False
+
+
+# If the use wants to run Moss on local assignments, this toggle will disable all canvas related things
+@app.callback(
+    [Output("assignment-path", "disabled"),
+     Output("canvas-api-key", "disabled"),
+     Output("group-1-toggle", "disabled"),
+     Output("group-3-toggle", "disabled"),
+     Output('directory-select', 'options')],
+    [Input('local-select', 'value')]
+)
+def toggleLocal(value):
+    if value == 'local':
+        return False, True, True, True, [{'label': 'By File', 'value': 'File'}, {'label': 'By Directory', 'value': 'directory'}]
+    else:
+        return True, False, False, False, [{'label': 'By File', 'value': 'File', 'disabled': True}, {'label': 'By Directory', 'value': 'directory', 'disabled': True}]
+
+
+# Toggle far Right_bar->settings->modal
+@app.callback(
+    Output("local-modal", "is_open"),
+    [Input("open-local-model", "n_clicks"), Input("close-local-model", "n_clicks")],
+    [State("local-modal", "is_open")],
+)
+def toggle_modal(n1, n2, is_open):
+    if n1 or n2:
+        return not is_open
+    return is_open
 
 
 # Start the Dash server

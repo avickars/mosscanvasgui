@@ -8,7 +8,6 @@ from columns.right_bar3 import execute, results, mossSideBar, placeHolderToggle,
 from dash.dependencies import Input, Output, State
 from local.local_class import local
 
-
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 canvasObject = canvas()
@@ -44,6 +43,7 @@ app.layout = html.Div(children=[
                  className="col-outer", id="col-outer3")
     ])
 ], id="base")
+
 
 # Callback for side bar collapse
 @app.callback(
@@ -173,18 +173,48 @@ def getSubmissionData(numClicks, data, selectedRows, courseValue, assignmentValu
 
 @app.callback(
     [Output('moss-report-link', 'children'),
-     Output('moss-report-link', 'href')],
+     Output('moss-report-link', 'href'),
+     Output('moss-report-link', 'style'),
+     Output('moss-barplot-link', 'children'),
+     Output('moss-barplot-link', 'href'),
+     Output('moss-barplot-link', 'style')
+     ],
     [Input('course-dropdown', 'value'),
      Input('assignment-dropdown', 'value'),
      Input("results2", "children")]
 )
 def mossReportLink(courseNumber, assignmentNumber, resultsDummyValue):
-    link = getPath(canvasObject.getCanvas(), assignmentNumber, courseNumber)
-    print("-->:",link)
-    if link == '/':
-        return ['No Moss Report Detected'], link
+    reportLink, barplotLink = getPath(canvasObject.getCanvas(), assignmentNumber, courseNumber)
+    print("rp ", reportLink)
+    print("bp", barplotLink)
+    if reportLink == '/' and barplotLink == '/':
+        return ['No Moss Report Detected'], \
+               reportLink, \
+               {'cursor': 'default', 'pointer-events': 'none', 'text-decoration': 'none', 'color': 'grey'}, \
+               ['No Bar Plot Detected'], \
+               barplotLink, \
+               {'cursor': 'default', 'pointer-events': 'none', 'text-decoration': 'none', 'color': 'grey'}
+    elif reportLink != '/' and barplotLink == '/':
+        return ['mossReport.html'], \
+               reportLink, \
+               {"color": "darkred"}, \
+               ['No Bar Plot Detected'], \
+               barplotLink, \
+               {'cursor': 'default', 'pointer-events': 'none', 'text-decoration': 'none', 'color': 'grey'}
+    elif reportLink == '/' and barplotLink != '/':
+        return ['No Moss Report Detected'], \
+               reportLink, \
+               {'cursor': 'default', 'pointer-events': 'none', 'text-decoration': 'none', 'color': 'grey'}, \
+               ['mossBarplot.html'], \
+               barplotLink, \
+               {"color": "darkred"}
     else:
-        return ['mossReport.html'],link
+        return ['mossReport.html'], \
+               reportLink, \
+               {"color": "darkred"},\
+               ['mossBarplot.html'], \
+               barplotLink, \
+               {"color": "darkred"}
 
 
 # This call back executes when the run button is clicked.  It will download the assignments and then run them through Moss.
@@ -198,7 +228,7 @@ def mossReportLink(courseNumber, assignmentNumber, resultsDummyValue):
         Input('assignment-dropdown', 'value'),
         Input('language-dropdown', 'value'),
         Input('fileExtension-input', 'value'),
-        Input('local-select','value'),
+        Input('local-select', 'value'),
         Input('directory-select', 'value')
     ]
 )
@@ -209,7 +239,7 @@ def executeFileSimilarity(numClicks, data, selectedRows, courseValue, assignment
             return f"Clicked 0 times."
         if numClicks > 0:
             if len(selectedRows) > 0:
-                canvasObject.moss([data[i] for i in selectedRows], courseValue, assignmentValue,languageValue, fileExtensionValue)
+                canvasObject.moss([data[i] for i in selectedRows], courseValue, assignmentValue, languageValue, fileExtensionValue)
                 return f"Clicked {numClicks} times."
             else:
                 canvasObject.moss(data, courseValue, assignmentValue, languageValue, fileExtensionValue)

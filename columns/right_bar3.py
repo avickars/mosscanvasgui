@@ -25,8 +25,14 @@ def mossSideBar():
                     html.H6('Moss Report:', id='prev-moss-report-header'),
                     html.A(children='No Moss Report Detected',
                            href='/',
-                           # style={'cursor': 'default', 'pointer-events': 'none', 'text-decoration': 'none', 'color': 'grey'},
+                           style={'cursor': 'default', 'pointer-events': 'none', 'text-decoration': 'none', 'color': 'grey'},
                            id='moss-report-link',
+                           target="_blank"),
+                    html.Br(),
+                    html.A(children='No Bar-plot Detected',
+                           href='/',
+                           style={'cursor': 'default', 'pointer-events': 'none', 'text-decoration': 'none', 'color': 'grey'},
+                           id='moss-barplot-link',
                            target="_blank")
                 ]),
                 id="right-collapse-1"

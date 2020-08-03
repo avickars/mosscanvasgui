@@ -66,6 +66,7 @@ def unzip(zipFile, folder, extensions):
                 # If the file has the appropriate extension, we will extract it
                 if file.endswith(extension):
                     print("Lets extract this", file)
+
                     try:
                         zipObj.extract(file, folder)
                     except zipfile.BadZipFile:
@@ -93,8 +94,9 @@ def extract(location, destination):
 
 
 def getPath(canvasObject, assignmentNumber, courseNumber):
-    if assignmentNumber is None or courseNumber == None:
-        return '/'
+    if assignmentNumber is None or courseNumber is None:
+        print("here")
+        return '/', '/'
 
     course = canvasObject.get_course(courseNumber)
     courseName = course.name
@@ -109,17 +111,25 @@ def getPath(canvasObject, assignmentNumber, courseNumber):
     path = path + f'/{courseName.replace(" ", "_").replace("-", "")}'
 
     # Getting the assignment
-    assignment = course.get_assignment(assignmentNumber)
+    try:
+        assignment = course.get_assignment(assignmentNumber)
+    except ResourceDoesNotExist:
+        return '/', '/'
 
     # Updated submissions path with assignment name
     path = path + f'/{assignment.name.replace(" ", "_").replace("-", "")}'
 
+    barPath = path + '/moss/mossBarplot.html'
     path = path + '/moss/mossReport.html'
 
-    if os.path.isfile(path):
-        return 'file://' + os.getcwd() + '/' + path
+    if os.path.isfile(path) and os.path.isfile(barPath):
+        return 'file://' + os.getcwd() + '/' + path, 'file://' + os.getcwd() + '/' + barPath
+    elif os.path.isfile(path):
+        return 'file://' + os.getcwd() + '/' + path, '/'
+    elif os.path.isfile(barPath):
+        return '/', 'file://' + os.getcwd() + '/' + barPath
     else:
-        return '/'
+        return "/", "/"
 
 
 # Given a canvas assignment submission, this function will download the assignment to the course->assignment->submission->student folder
@@ -175,6 +185,9 @@ def downloadSubmission(canvasObject, assignmentNumber, courseNumber, submission,
 
     # Creating the path for the submission
     individualSubmissionPath = studentPath + f'/{submission["name"].replace(" ", "").replace("-", "")}_{submission["fileName"]}'
+
+    if individualSubmissionPath.endswith('.zip.zip'):
+        individualSubmissionPath = individualSubmissionPath[0:-4]
 
     # Writing the contents to a file
     open(individualSubmissionPath, 'wb').write(req.content)
@@ -525,6 +538,5 @@ class canvas:
                     f'courses/{courseName.replace(" ", "_").replace("-", "")}/{assignment.name.replace(" ", "_").replace("-", "")}/moss/',
                     courseName,
                     assignment.name)
-
 
         os.chdir(wd)

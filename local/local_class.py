@@ -30,7 +30,6 @@ class local:
         data = pd.DataFrame(columns=['Location', 'fileName'])
         try:
             for file in os.listdir(path):
-                print(file)
                 try:
                     if os.path.isdir(path + f'/{file}'):
                         for subFile in os.listdir(path + f'/{file}'):

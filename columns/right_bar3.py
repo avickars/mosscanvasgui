@@ -40,7 +40,10 @@ def placeHolderToggle():
                 dbc.CardBody(children=[
                     dbc.Button("Run",
                                id="palceholder",
-                               className="sidebarbuttons")
+                               className="sidebarbuttons"),
+                    html.H6('Previous Moss Report'),
+                    html.A('No Previous Moss Report Detected', id='prev-moss-report')
+
                 ]),
                 id="right-collapse-2"
             ),

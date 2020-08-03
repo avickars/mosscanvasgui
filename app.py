@@ -1,12 +1,13 @@
 import dash
 import dash_html_components as html
 import dash_bootstrap_components as dbc
-from canvas.canvas_class import canvas
+from canvas.canvas_class import canvas, getPath
 from columns.left_bar import settings, courses, assignments, languages, fileExtensions
 from columns.center_bar import dtTable
 from columns.right_bar3 import execute, results, mossSideBar, placeHolderToggle, results2
 from dash.dependencies import Input, Output, State
 from local.local_class import local
+
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
@@ -43,18 +44,6 @@ app.layout = html.Div(children=[
                  className="col-outer", id="col-outer3")
     ])
 ], id="base")
-
-
-#
-#
-# @app.callback(Output("content", "children"), [Input("tabs", "active_tab")])
-# def switch_tab(at):
-#     if at == "tab-1":
-#         return tab1_content
-#     elif at == "tab-2":
-#         return tab2_content
-#     return html.P("This shouldn't ever be displayed...")
-
 
 # Callback for side bar collapse
 @app.callback(
@@ -111,23 +100,7 @@ def updateCoursesDropdown(value):
     [dash.dependencies.Input('course-dropdown', 'value')]
 )
 def updateAssignmentsDropdown(value):
-    # print("In up Assignments")
-    # print(value)
     return canvasObject.getAssignments(value)
-
-
-# @app.callback(
-#     [Output('datatable', 'data'),
-#      Output('datatable', 'columns')],
-#     [Input("assignment-path", 'value'),
-#      Input('language-dropdown', 'value'),
-#      Input('fileExtension-input', 'value')]
-# )
-# def dataTableLocal(path, languageValue, fileExtensionValues):
-#     localObject.changePath(path)
-#     df = localObject.getSubmissions(fileExtensionValues, languageValue)
-#     # df = canvasObject.getSubmissions(courseNumber, assignmentNumber, languageValue, fileExtensionValue)
-#     return df.to_dict('records'), [{"name": i, "id": i} for i in df.columns]
 
 
 # Changes the datatable when one of the outputs is changed
@@ -186,15 +159,15 @@ def enableExecuteButton(rows, localCanvas):
         Input('fileExtension-input', 'value')
     ]
 )
-def executeFileSimilarity(numClicks, data, selectedRows, courseValue, assignmentValue, fileExtensionValue):
+def getSubmissionData(numClicks, data, selectedRows, courseValue, assignmentValue, fileExtensionValue):
     if numClicks is None:
         print("Not executed ")
         return f"Clicked 0 times."
     if numClicks > 0:
         if len(selectedRows) > 0:
-            location = canvasObject.downloadSubmissions([data[i] for i in selectedRows], courseValue, assignmentValue, fileExtensionValue)
+            canvasObject.downloadSubmissions([data[i] for i in selectedRows], courseValue, assignmentValue, fileExtensionValue)
         else:
-            location = canvasObject.downloadSubmissions(data, courseValue, assignmentValue, fileExtensionValue)
+            canvasObject.downloadSubmissions(data, courseValue, assignmentValue, fileExtensionValue)
         return f"Clicked {numClicks} times."
 
 
@@ -208,20 +181,23 @@ def executeFileSimilarity(numClicks, data, selectedRows, courseValue, assignment
         Input('course-dropdown', 'value'),
         Input('assignment-dropdown', 'value'),
         Input('language-dropdown', 'value'),
-        Input('fileExtension-input', 'value')
+        Input('fileExtension-input', 'value'),
+        Input('local-select','value'),
+        Input('directory-select', 'value')
     ]
 )
-def executeFileSimilarity(numClicks, data, selectedRows, courseValue, assignmentValue, languageValue, fileExtensionValue):
-    if numClicks is None:
-        print("Not executed ")
-        return f"Clicked 0 times."
-    if numClicks > 0:
-        if len(selectedRows) > 0:
-            canvasObject.moss([data[i] for i in selectedRows], courseValue, assignmentValue,languageValue, fileExtensionValue)
-            return f"Clicked {numClicks} times."
-        else:
-            canvasObject.moss(data, courseValue, assignmentValue, languageValue, fileExtensionValue)
-            return f"Clicked {numClicks} times."
+def executeFileSimilarity(numClicks, data, selectedRows, courseValue, assignmentValue, languageValue, fileExtensionValue, localDirectory, fileDirectory):
+    if localDirectory == 'canvas':
+        if numClicks is None:
+            print("Not executed ")
+            return f"Clicked 0 times."
+        if numClicks > 0:
+            if len(selectedRows) > 0:
+                canvasObject.moss([data[i] for i in selectedRows], courseValue, assignmentValue,languageValue, fileExtensionValue)
+                return f"Clicked {numClicks} times."
+            else:
+                canvasObject.moss(data, courseValue, assignmentValue, languageValue, fileExtensionValue)
+                return f"Clicked {numClicks} times."
 
 
 # Callback for right side bar collapse

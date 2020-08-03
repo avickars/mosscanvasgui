@@ -6,6 +6,10 @@ import requests
 import os
 import zipfile
 import shutil
+from bs4 import BeautifulSoup
+import codecs
+import sys
+import distutils
 
 
 # This function returns extensions, or names we do not want to extract from a zip file
@@ -87,6 +91,36 @@ def extract(location, destination):
                 print("Unable to move file")
 
 
+def getPath(canvasObject, assignmentNumber, courseNumber):
+    course = canvasObject.get_course(courseNumber)
+    courseName = course.name
+
+    # Initial submissions path
+    path = 'moss/courses'
+
+    # Creating a folder to store the all results if it doesn't already exist
+    createDirectory(path)
+
+    # Updated submissions path with course name
+    path = path + f'/{courseName.replace(" ", "_").replace("-", "")}'
+
+    # Getting the assignment
+    assignment = course.get_assignment(assignmentNumber)
+
+    # Updated submissions path with assignment name
+    path = path + f'/{assignment.name.replace(" ", "_").replace("-", "")}'
+
+    path = path + '/moss/mossReport.html'
+
+    if os.path.isfile(path):
+        return path
+    else:
+        return 'No Moss Reports Detected'
+
+
+
+
+# Given a canvas assignment submission, this function will download the assignment to the course->assignment->submission->student folder
 def downloadSubmission(canvasObject, assignmentNumber, courseNumber, submission, extensions):
     # Getting the course name
     course = canvasObject.get_course(courseNumber)
@@ -150,6 +184,116 @@ def downloadSubmission(canvasObject, assignmentNumber, courseNumber, submission,
     # Extracting any sub files into one file since moss is not recursive
     extract(studentPath, studentPath)
     return errors
+
+
+# This function copies a directory from the file location to the destination.  The file will be named fileName
+def copyDirectory(fileLocation, fileName, destination):
+    # Creating the directory
+    createDirectory(destination)
+
+    # Removing the directory if it is already there
+    try:
+        shutil.rmtree(destination + f'/{fileName}')
+    except FileNotFoundError:
+        print("File not there.  No worries!")
+
+    shutil.copytree(fileLocation, destination + f'/{fileName}')
+
+
+# Given a substring, and a big string, this function will return a list of all the indices of the substring in the bigString.  Is used in moveMoss()
+def findSubString(subString, bigString):
+    indices = []
+    for i in range(0, len(bigString)):
+        if subString == bigString[i]:
+            indices.append(i)
+    return indices
+
+
+# This function moves a index.html  (i.e. a moss report), and copies it and all its dependencies to the destination. It also rewrites it a bit to make the output easier to read.
+def moveMoss(destination):
+    # Copying the moss results
+    copyDirectory('html', 'html', destination)
+
+    # Copying the bitmaps
+    copyDirectory('bitmaps', 'bitmaps', destination)
+
+    # Copying the general file
+    copyDirectory('general', 'general', destination)
+
+    htmlFile = codecs.open(destination + '/html/index.html', 'r')
+
+    # path change
+    path = 'html'
+
+    # Reading html into a beautiful soup object
+    soup = BeautifulSoup(htmlFile.read(), features="lxml")
+
+    # Extracting the number of lines matched in each comparison
+    numLinesMatched = soup.find('table').find_all('td', {'align': 'right'})
+
+    # Extracting each file compared by line
+    subReportUrls = soup.find('table').find_all('a')
+
+    reportHTMLTop = f"""
+    <!DOCTYPE html>
+    <html>
+    	<head>
+    		<title> Moss Results </title>
+    	</head>
+
+    	<body>
+    		Moss Results
+    		<hr>
+    			<a href="general/format.html" target="_top"> How to Read the Results</a>
+    			<a href="general/tips.html" target="_top"> Tips</a>
+    			<a href="general/faq.html"> FAQ</a>
+    			<a href="mailto:aikens@similix.com">Contact</a>
+    			<a href="general/scripts.html">Submission Scripts</a>
+    			<a href="general/credits.html" target="_top"> Credits</a>
+    		<hr>
+    		<table>
+    			<tbody>
+    				<tr>
+    					<th>File 1</th>
+    					<th>File 2</th>
+    					<th>Lines Matched</th>
+    				</tr>
+    """
+
+    reportHTMLBottom = """
+    			</tbody>
+    		</table>
+    	</body>
+    </html>
+    """
+
+    for i in range(0, len(subReportUrls), 2):
+        nameLeft = subReportUrls[i].contents[0]
+        nameLeftAttr = subReportUrls[i].attrs['href']
+        leftLocation = path + "/" + nameLeftAttr
+
+        nameRight = subReportUrls[i + 1].contents[0]
+        nameRightAttr = subReportUrls[i + 1].attrs['href']
+        rightLocation = path + "/" + nameRightAttr
+
+        linesMatched = numLinesMatched[int(i / 2)].contents[0]
+
+        newNameLeft = nameLeft[findSubString('/', nameLeft)[-2] + 1:]
+        newNameRight = nameRight[findSubString('/', nameRight)[-2] + 1:]
+
+        reportHTMLTop = reportHTMLTop + f"""<tr><td> <a href={leftLocation}> {newNameLeft} </a> </td>""" + f"""<td> <a href={rightLocation}> {newNameRight} </a> </td>""" + f"""<td align=\"right\">{linesMatched}</td> </tr>"""
+
+    reportHTMLTop = reportHTMLTop + reportHTMLBottom
+    mossReport = open(destination + '/mossReport.html', 'wb')
+    mossReport.write(reportHTMLTop.encode())
+    mossReport.close()
+
+
+# moveMoss('/home/aidan/Documents/GitRepositories/mosscanvasgui/moss/courses/Sandbox__diana__63020711/APIAssignment/moss')
+
+
+# copyDirectory('/home/aidan/Documents/GitRepositories/mosscanvasgui/moss/html','html',
+#               '/home/aidan/Documents/GitRepositories/mosscanvasgui/moss/courses/Sandbox__diana__63020711/APIAssignment/moss')
 
 
 class canvas:
@@ -312,7 +456,6 @@ class canvas:
         return data
 
     def downloadSubmissions(self, data, courseNumber, assignmentNumber, extensions):
-        key = self.__key
         canvasObject = self.__canvas
 
         # DOWNLOADING ASSIGNMENTS
@@ -324,6 +467,7 @@ class canvas:
         print("DOWNLOAD COMPLETE!")
 
     def moss(self, data, courseNumber, assignmentNumber, languageValue, extensions):
+        dataFrame = pd.DataFrame(data)
         canvasObject = self.__canvas
 
         # Getting the course name
@@ -334,7 +478,7 @@ class canvas:
         assignment = course.get_assignment(assignmentNumber)
 
         # Creating the path where the assignments should be located
-        submissionsPath = f'moss/courses/{courseName.replace(" ", "_").replace("-", "")}/{assignment.name.replace(" ", "_").replace("-", "")}/submissions'
+        submissionsPath = f'courses/{courseName.replace(" ", "_").replace("-", "")}/{assignment.name.replace(" ", "_").replace("-", "")}/submissions'
 
         # Recording the current working directory, it is needed at the bottom
         wd = os.getcwd()
@@ -343,30 +487,31 @@ class canvas:
         os.chdir('moss')
 
         # Getting the students that are in the data set
-        students = [i['name'].replace(" ", "_").replace("-", "") for i in data]
+        students = set([i['name'] for i in data])
 
-        print(students)
+        # Setting the command to run moss
+        command = f"perl moss.pl -l {languageValue} -d "
 
+        for student in students:
+            studentPath = submissionsPath + f'/{student.replace(" ", "_").replace("-", "")}'
+            if not os.path.exists(studentPath):
+                os.chdir(wd)
+                print('Assignments not found for: ', student)
+                print("Downloading their assignments from canvas")
+                print(dataFrame[dataFrame.name == student])
+                for submission in dataFrame[dataFrame.name == student].to_dict('records'):
+                    downloadSubmission(canvasObject, assignmentNumber, courseNumber, submission, extensions)
+                print("Download Complete!")
+                os.chdir('moss')
 
-        # # Creating a folder to store the all results if it doesn't already exist
-        # createDirectory(submissionsPath)
-        #
-        # # Creating a folder to store the course results if it doesn't already exist
-        # # Note: Moss doesn't like path names with spaces or dashes for some reason, so I am getting rid of them
-        # createDirectory(submissionsPath)
-        # # Creating a folder to store the assignment results if it doesn't already exist
-        # createDirectory(submissionsPath)
-        #
-        # # Creating a folder to store assignments if it doesn't already exist
-        # createDirectory(submissionsPath)
+            for extension in extensions.split(','):
+                if extension == '.zip':
+                    continue
+                command = command + f'{studentPath}/*{extension} '
+        os.system(command)
+        print(command)
+        print("Moss Executed!")
 
+        moveMoss(f'courses/{courseName.replace(" ", "_").replace("-", "")}/{assignment.name.replace(" ", "_").replace("-", "")}/moss')
 
-
-
-
-        # # Getting the course name
-        # course = canvasObject.get_course(courseNumber)
-        # courseName = course.name
-        #
-        # # Initial submissions path
-        # submissionsPath = 'moss/courses'
+        os.chdir(wd)

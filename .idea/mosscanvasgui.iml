@@ -2,6 +2,9 @@
 <module type="PYTHON_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/moss/courses/Sandbox__diana__63020711/APIAssignment/moss/bitmaps" />
+      <excludeFolder url="file://$MODULE_DIR$/moss/courses/Sandbox__diana__63020711/APIAssignment/moss/general" />
+      <excludeFolder url="file://$MODULE_DIR$/moss/courses/Sandbox__diana__63020711/APIAssignment/submissions" />
       <excludeFolder url="file://$MODULE_DIR$/venv" />
     </content>
     <orderEntry type="inheritedJdk" />

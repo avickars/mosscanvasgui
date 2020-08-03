@@ -1,5 +1,6 @@
 import dash_bootstrap_components as dbc
 import dash_html_components as html
+import dash_core_components as dcc
 
 
 def execute():
@@ -18,7 +19,15 @@ def mossSideBar():
             ),
             dbc.Collapse(
                 dbc.CardBody(children=[
-                    dbc.Button("Run", id="run-moss", className="sidebarbuttons", disabled=True)
+                    dbc.Button("Run", id="run-moss", className="sidebarbuttons", disabled=True),
+                    html.Br(),
+                    html.Br(),
+                    html.H6('Moss Report:', id='prev-moss-report-header'),
+                    html.A(children='No Moss Report Detected',
+                           href='/',
+                           # style={'cursor': 'default', 'pointer-events': 'none', 'text-decoration': 'none', 'color': 'grey'},
+                           id='moss-report-link',
+                           target="_blank")
                 ]),
                 id="right-collapse-1"
             ),
@@ -41,8 +50,6 @@ def placeHolderToggle():
                     dbc.Button("Run",
                                id="palceholder",
                                className="sidebarbuttons"),
-                    html.H6('Previous Moss Report'),
-                    html.A('No Previous Moss Report Detected', id='prev-moss-report')
 
                 ]),
                 id="right-collapse-2"

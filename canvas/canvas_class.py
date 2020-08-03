@@ -8,6 +8,7 @@ import zipfile
 import shutil
 from bs4 import BeautifulSoup
 import codecs
+from moss.mossBarPlotVizualization import mossBarPlot
 import sys
 import distutils
 
@@ -92,6 +93,9 @@ def extract(location, destination):
 
 
 def getPath(canvasObject, assignmentNumber, courseNumber):
+    if assignmentNumber is None or courseNumber == None:
+        return '/'
+
     course = canvasObject.get_course(courseNumber)
     courseName = course.name
 
@@ -113,11 +117,9 @@ def getPath(canvasObject, assignmentNumber, courseNumber):
     path = path + '/moss/mossReport.html'
 
     if os.path.isfile(path):
-        return path
+        return 'file://' + os.getcwd() + '/' + path
     else:
-        return 'No Moss Reports Detected'
-
-
+        return '/'
 
 
 # Given a canvas assignment submission, this function will download the assignment to the course->assignment->submission->student folder
@@ -311,6 +313,9 @@ class canvas:
     # Returns the key to user
     def getKey(self):
         return self.__key
+
+    def getCanvas(self):
+        return self.__canvas
 
     # Used to get data for each submission for an assignment.  Called by getSubmissions
     def __submissionData(self, courseNumber, assignmentNumber, canvasID, fileExtensions):
@@ -513,5 +518,13 @@ class canvas:
         print("Moss Executed!")
 
         moveMoss(f'courses/{courseName.replace(" ", "_").replace("-", "")}/{assignment.name.replace(" ", "_").replace("-", "")}/moss')
+
+        print("Creating Vizualizations")
+
+        mossBarPlot(f'courses/{courseName.replace(" ", "_").replace("-", "")}/{assignment.name.replace(" ", "_").replace("-", "")}/moss/mossReport.html',
+                    f'courses/{courseName.replace(" ", "_").replace("-", "")}/{assignment.name.replace(" ", "_").replace("-", "")}/moss/',
+                    courseName,
+                    assignment.name)
+
 
         os.chdir(wd)

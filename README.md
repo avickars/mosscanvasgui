@@ -5,4 +5,4 @@
 - canvasapi
 - dash-bootstrap-components
 - pandas
-- beautifulsoup4
+- beautifulsoup4\

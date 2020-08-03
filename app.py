@@ -171,6 +171,22 @@ def getSubmissionData(numClicks, data, selectedRows, courseValue, assignmentValu
         return f"Clicked {numClicks} times."
 
 
+@app.callback(
+    [Output('moss-report-link', 'children'),
+     Output('moss-report-link', 'href')],
+    [Input('course-dropdown', 'value'),
+     Input('assignment-dropdown', 'value'),
+     Input("results2", "children")]
+)
+def mossReportLink(courseNumber, assignmentNumber, resultsDummyValue):
+    link = getPath(canvasObject.getCanvas(), assignmentNumber, courseNumber)
+    print("-->:",link)
+    if link == '/':
+        return ['No Moss Report Detected'], link
+    else:
+        return ['mossReport.html'],link
+
+
 # This call back executes when the run button is clicked.  It will download the assignments and then run them through Moss.
 @app.callback(
     Output("results2", "children"),

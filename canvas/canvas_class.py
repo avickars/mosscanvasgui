@@ -311,14 +311,6 @@ def moveMoss(destination):
     mossReport.write(reportHTMLTop.encode())
     mossReport.close()
 
-
-# moveMoss('/home/aidan/Documents/GitRepositories/mosscanvasgui/moss/courses/Sandbox__diana__63020711/APIAssignment/moss')
-
-
-# copyDirectory('/home/aidan/Documents/GitRepositories/mosscanvasgui/moss/html','html',
-#               '/home/aidan/Documents/GitRepositories/mosscanvasgui/moss/courses/Sandbox__diana__63020711/APIAssignment/moss')
-
-
 class canvas:
     def __init__(self):
         self.__path = 'canvas/'

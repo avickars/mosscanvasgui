@@ -173,11 +173,11 @@ def settings(canvas):
                         value='canvas'
                     ),
                     dbc.RadioItems(
-                        options=[{'label': 'By File', 'value': 'File', 'disabled': True}, {'label': 'By Directory', 'value': 'directory', 'disabled': True}],
+                        options=[{'label': 'By File', 'value': 'file', 'disabled': True}, {'label': 'By Directory', 'value': 'directory', 'disabled': True}],
                         id='directory-select',
                         value='directory'
                     ),
-                    dcc.Input(placeholder="path", id="assignment-path", className='user-inputs', disabled=True)
+                    dcc.Input(placeholder="path", id="assignment-path", className='user-inputs', disabled=True, value='')
                 ]),
                 id="collapse-2"
             ),

@@ -21,13 +21,17 @@ def sections(arg):
 
 
 def mossBarPlot(reportLocation, barplotDestination, courseName, assignmentName):
+    print("Loc: ", reportLocation)
+    print("Dest: ", barplotDestination)
     # Getting Moss html report
     htmlFile = codecs.open(reportLocation, 'r')
 
     # Setting the destination of the report
     destination = barplotDestination
-
-    plotTitle = f'{courseName} -- {assignmentName} -- Moss Distribution'
+    if courseName == '' or assignmentName =='':
+        plotTitle = 'Moss Distribution'
+    else:
+        plotTitle = f'{courseName} -- {assignmentName} -- Moss Distribution'
 
     fileName = "mossBarplot.html"
 

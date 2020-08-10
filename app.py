@@ -7,6 +7,7 @@ from columns.center_bar import dtTable
 from columns.right_bar3 import execute, results, mossSideBar, placeHolderToggle, results2
 from dash.dependencies import Input, Output, State
 from local.local_class import local
+import os
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
@@ -181,40 +182,73 @@ def getSubmissionData(numClicks, data, selectedRows, courseValue, assignmentValu
      ],
     [Input('course-dropdown', 'value'),
      Input('assignment-dropdown', 'value'),
-     Input("results2", "children")]
+     Input("results2", "children"),
+     Input('local-select', 'value'),
+     Input("assignment-path", 'value')
+     ]
 )
-def mossReportLink(courseNumber, assignmentNumber, resultsDummyValue):
-    reportLink, barplotLink = getPath(canvasObject.getCanvas(), assignmentNumber, courseNumber)
-    print("rp ", reportLink)
-    print("bp", barplotLink)
-    if reportLink == '/' and barplotLink == '/':
-        return ['No Moss Report Detected'], \
-               reportLink, \
-               {'cursor': 'default', 'pointer-events': 'none', 'text-decoration': 'none', 'color': 'grey'}, \
-               ['No Bar Plot Detected'], \
-               barplotLink, \
-               {'cursor': 'default', 'pointer-events': 'none', 'text-decoration': 'none', 'color': 'grey'}
-    elif reportLink != '/' and barplotLink == '/':
-        return ['mossReport.html'], \
-               reportLink, \
-               {"color": "darkred"}, \
-               ['No Bar Plot Detected'], \
-               barplotLink, \
-               {'cursor': 'default', 'pointer-events': 'none', 'text-decoration': 'none', 'color': 'grey'}
-    elif reportLink == '/' and barplotLink != '/':
-        return ['No Moss Report Detected'], \
-               reportLink, \
-               {'cursor': 'default', 'pointer-events': 'none', 'text-decoration': 'none', 'color': 'grey'}, \
-               ['mossBarplot.html'], \
-               barplotLink, \
-               {"color": "darkred"}
+def mossReportLink(courseNumber, assignmentNumber, resultsDummyValue, localSelect, assignmentPath):
+    if localSelect == 'canvas':
+        reportLink, barplotLink = getPath(canvasObject.getCanvas(), assignmentNumber, courseNumber)
+        if reportLink == '/' and barplotLink == '/':
+            return ['No Moss Report Detected'], \
+                   reportLink, \
+                   {'cursor': 'default', 'pointer-events': 'none', 'text-decoration': 'none', 'color': 'grey'}, \
+                   ['No Bar Plot Detected'], \
+                   barplotLink, \
+                   {'cursor': 'default', 'pointer-events': 'none', 'text-decoration': 'none', 'color': 'grey'}
+        elif reportLink != '/' and barplotLink == '/':
+            return ['mossReport.html'], \
+                   reportLink, \
+                   {"color": "darkred"}, \
+                   ['No Bar Plot Detected'], \
+                   barplotLink, \
+                   {'cursor': 'default', 'pointer-events': 'none', 'text-decoration': 'none', 'color': 'grey'}
+        elif reportLink == '/' and barplotLink != '/':
+            return ['No Moss Report Detected'], \
+                   reportLink, \
+                   {'cursor': 'default', 'pointer-events': 'none', 'text-decoration': 'none', 'color': 'grey'}, \
+                   ['mossBarplot.html'], \
+                   barplotLink, \
+                   {"color": "darkred"}
+        else:
+            print("reportLink: ", reportLink)
+            return ['mossReport.html'], \
+                   reportLink, \
+                   {"color": "darkred"}, \
+                   ['mossBarplot.html'], \
+                   barplotLink, \
+                   {"color": "darkred"}
     else:
-        return ['mossReport.html'], \
-               reportLink, \
-               {"color": "darkred"},\
-               ['mossBarplot.html'], \
-               barplotLink, \
-               {"color": "darkred"}
+        if os.path.exists(assignmentPath + '/mossReport.html') and os.path.exists(assignmentPath + '/mossBarplot.html'):
+            print(assignmentPath + 'mossReport.html')
+            return ['mossReport.html'], \
+                   'file://' + assignmentPath + '/mossReport.html', \
+                   {"color": "darkred"}, \
+                   ['mossBarplot.html'], \
+                   'file://' + assignmentPath + '/mossBarplot.html', \
+                   {"color": "darkred"}
+        elif os.path.exists(assignmentPath + '/mossReport.html') and not os.path.exists(assignmentPath + '/mossBarplot.html'):
+            return ['mossReport.html'], \
+                   'file://' + assignmentPath + '/mossReport.html', \
+                   {"color": "darkred"}, \
+                   ['mossBarplot.html'], \
+                   '/', \
+                   {'cursor': 'default', 'pointer-events': 'none', 'text-decoration': 'none', 'color': 'grey'}
+        elif not os.path.exists(assignmentPath + '/mossReport.html') and os.path.exists(assignmentPath + '/mossBarplot.html'):
+            return ['mossReport.html'], \
+                   '/', \
+                   {'cursor': 'default', 'pointer-events': 'none', 'text-decoration': 'none', 'color': 'grey'}, \
+                   ['mossBarplot.html'], \
+                   'file://' + assignmentPath + '/mossBarplot.html', \
+                   {"color": "darkred"}
+        else:
+            return ['mossReport.html'], \
+                   '/', \
+                   {'cursor': 'default', 'pointer-events': 'none', 'text-decoration': 'none', 'color': 'grey'}, \
+                   ['mossBarplot.html'], \
+                   '/', \
+                   {'cursor': 'default', 'pointer-events': 'none', 'text-decoration': 'none', 'color': 'grey'}
 
 
 # This call back executes when the run button is clicked.  It will download the assignments and then run them through Moss.
@@ -245,7 +279,15 @@ def executeFileSimilarity(numClicks, data, selectedRows, courseValue, assignment
                 canvasObject.moss(data, courseValue, assignmentValue, languageValue, fileExtensionValue)
                 return f"Clicked {numClicks} times."
     else:
-        print("Run Moss Locally")
+        if numClicks is None:
+            print("Not executed ")
+            return f"Clicked 0 times."
+        if len(selectedRows) > 0:
+            localObject.moss([data[i] for i in selectedRows], fileDirectory, languageValue, fileExtensionValue)
+            return f"Clicked {numClicks} times."
+        else:
+            localObject.moss(data, fileDirectory, languageValue, fileExtensionValue)
+            return f"Clicked {numClicks} times."
 
 
 # Callback for right side bar collapse

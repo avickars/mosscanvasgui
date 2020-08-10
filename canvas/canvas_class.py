@@ -18,6 +18,14 @@ def exclude():
     return ['__MACOSX']
 
 
+# This function tests if a directory contains a file with a specified extension
+def exists(directory, extension):
+    for file in os.listdir(directory):
+        if file.endswith(extension):
+            return True
+    return False
+
+
 # This function reads the key (if it exists) from the json file key.txt and returns the key
 def readKey(path):
     try:
@@ -525,7 +533,9 @@ class canvas:
             for extension in extensions.split(','):
                 if extension == '.zip':
                     continue
-                command = command + f'{studentPath}/*{extension} '
+                if exists(f'{studentPath}/', extension):
+                    command = command + f'{studentPath}/*{extension} '
+
         os.system(command)
         print(command)
         print("Moss Executed!")

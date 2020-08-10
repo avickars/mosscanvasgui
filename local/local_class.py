@@ -2,16 +2,16 @@ import pandas as pd
 import os
 
 
-# def directoryTraveller(path, data):
-#     for file in os.listdir(path):
-#         if os.path.isdir(path + f'/{file}'):
-#             directoryTraveller(path + f'/{file}', destination)
-#             shutil.rmtree(location + f'/{file}')
-#         else:
-#             try:
-#                 shutil.move(location + f'/{file}', destination)
-#             except shutil.Error:
-#                 print("Unable to move file")
+def directoryTraveller(path, data):
+    for file in os.listdir(path):
+        if os.path.isdir(path + f'/{file}'):
+            directoryTraveller(path + f'/{file}', destination)
+            shutil.rmtree(location + f'/{file}')
+        else:
+            try:
+                shutil.move(location + f'/{file}', destination)
+            except shutil.Error:
+                print("Unable to move file")
 
 
 class local:

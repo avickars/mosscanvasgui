@@ -244,6 +244,8 @@ def executeFileSimilarity(numClicks, data, selectedRows, courseValue, assignment
             else:
                 canvasObject.moss(data, courseValue, assignmentValue, languageValue, fileExtensionValue)
                 return f"Clicked {numClicks} times."
+    else:
+        print("Run Moss Locally")
 
 
 # Callback for right side bar collapse

@@ -95,3 +95,11 @@
 .user-inputs{
     width: 100%;
 }
+
+.no-bottom-space{
+    margin-bottom: -6px;
+}
+
+.sub-text:hover{
+    color: darkred;
+}

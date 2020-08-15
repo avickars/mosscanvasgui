@@ -48,7 +48,7 @@ def createDirectory(path):
     try:
         os.mkdir(path)
     except FileExistsError:
-        print("Path already exists")
+        print("Path already exists: ", path)
 
 
 # This function extracts the user specified contains of a file into the folder.
@@ -153,7 +153,7 @@ def downloadSubmission(canvasObject, assignmentNumber, courseNumber, submission,
     createDirectory(submissionsPath)
 
     # Updated submissions path with course name
-    submissionsPath = submissionsPath + f'/{courseName.replace(" ", "_").replace("-", "")}'
+    submissionsPath = submissionsPath + f'/{courseName.replace(" ", "_").replace("-", "").replace("/","_")}'
 
     # Creating a folder to store the course results if it doesn't already exist
     # Note: Moss doesn't like path names with spaces or dashes for some reason, so I am getting rid of them
@@ -484,7 +484,12 @@ class canvas:
 
         print("DOWNLOAD COMPLETE!")
 
-    def moss(self, data, courseNumber, assignmentNumber, languageValue, extensions):
+    def moss(self, data, courseNumber, assignmentNumber, languageValue, extensions, baseFiles):
+        if baseFiles is not None and baseFiles != '':
+            baseFilesAll = baseFiles.split('\n')
+        else:
+            baseFilesAll = []
+
         dataFrame = pd.DataFrame(data)
         canvasObject = self.__canvas
 
@@ -504,11 +509,23 @@ class canvas:
         # Changing the current working directory to moss/
         os.chdir('moss')
 
+        # Creating a sub-directory to store any base files
+        if len(baseFilesAll) > 0:
+            createDirectory("Base")
+            for baseFile in baseFilesAll:
+                shutil.copy2(baseFile, "Base/")
+
         # Getting the students that are in the data set
         students = set([i['name'] for i in data])
 
-        # Setting the command to run moss
-        command = f"perl moss.pl -l {languageValue} -d "
+        if len(baseFilesAll) > 0:
+            # Setting the command to run moss
+            command = f"perl moss.pl -l {languageValue} -b "
+            for fileName in os.listdir("Base"):
+                command = command + f"Base/{fileName} "
+        else:
+            # Setting the command to run moss
+            command = f"perl moss.pl -l {languageValue} -d "
 
         for student in students:
             studentPath = submissionsPath + f'/{student.replace(" ", "_").replace("-", "")}'
@@ -531,6 +548,13 @@ class canvas:
         os.system(command)
         print(command)
         print("Moss Executed!")
+
+        # Deleting the Base file so as not to contaminate any future Moss runs
+        if len(baseFilesAll):
+            try:
+                shutil.rmtree("Base")
+            except FileNotFoundError:
+                print("No Base Files Included, can't delete \"Base\" directory")
 
         moveMoss(f'courses/{courseName.replace(" ", "_").replace("-", "")}/{assignment.name.replace(" ", "_").replace("-", "")}/moss')
 

@@ -98,12 +98,19 @@ class local:
     def changePath(self, newPath):
         self.path = newPath
 
-    def getSubmissions(self, extensions, language):
+    def getSubmissions(self, extensions, language, baseFiles):
         if extensions is None or language is None or self.path is None:
-            return pd.DataFrame(data=[{"Error": 'At least one of Language or File Extension has not been selected'}])
+            return pd.DataFrame(data=[{"Error": 'At least one of Language or File Extension has not been selected or you have entered an Invalid Base File'}])
+
+        print("Basefiles: ", baseFiles)
+        if baseFiles is not None and baseFiles != '':
+            print("here")
+            baseFilesAll = baseFiles.split('\n')
+            for baseFile in baseFilesAll:
+                if not os.path.isfile(baseFile):
+                    return pd.DataFrame(data=[{"Error": 'At least one of Language or File Extension has not been selected or you have entered an Invalid Base File'}])
 
         path = self.path
-        forwardSlashLocations = findSubString('/', path)
         fileExtensionsList = extensions.split(',')
         data = pd.DataFrame(columns=['Location', 'fileName'])
         try:
@@ -122,7 +129,31 @@ class local:
             return pd.DataFrame(data={"Error": ['Invalid Path']})
         return data
 
-    def moss(self, data, directoryOrFile, languageValue, fileExtensionValue):
+    def moss(self, data, directoryOrFile, languageValue, fileExtensionValue, baseFiles):
+        try:
+            shutil.rmtree(f'{self.path}/bitmaps')
+        except FileNotFoundError:
+            print("")
+
+        try:
+            shutil.rmtree(f'{self.path}/general')
+        except FileNotFoundError:
+            print("")
+
+        try:
+            shutil.rmtree(f'{self.path}/html')
+        except FileNotFoundError:
+            print("")
+
+        try:
+            os.remove(f'{self.path}/mossReport.html')
+        except FileNotFoundError:
+            print("")
+
+        if baseFiles is not None and baseFiles != '':
+            baseFilesAll = baseFiles.split('\n')
+        else:
+            baseFilesAll = []
         extensions = fileExtensionValue.split(',')
 
         # Recording the current working directory, it is needed at the bottom
@@ -140,6 +171,26 @@ class local:
         # Creating the directory
         createDirectory('Files')
 
+        if len(baseFilesAll) > 0:
+            createDirectory("Base")
+            for baseFile in baseFilesAll:
+                try:
+                    shutil.copy2(baseFile, "Base/")
+                except FileNotFoundError:
+                    print("")
+                except IsADirectoryError:
+                    os.chdir(wd)
+                    return
+
+        if len(baseFilesAll) > 0:
+            # Setting the command to run moss
+            command = f"perl moss.pl -l {languageValue} -b "
+            for fileName in os.listdir("Base"):
+                command = command + f"Base/{fileName} "
+        else:
+            # Setting the command to run moss
+            command = f"perl moss.pl -l {languageValue} "
+
         # Iterating through the selected data and copying them over
         for row in data:
             forwardSashes = findSubString('/', row['Location'])
@@ -151,15 +202,16 @@ class local:
 
         if directoryOrFile == 'directory':
             # Setting the command to run moss
-            command = f"perl moss.pl -l {languageValue} -d "
+            command = command + "-d "
             for fileName in os.listdir('Files'):
                 for extension in extensions:
                     if exists(f'Files/{fileName}/', extension):
                         command = command + f'Files/{fileName}/*{extension} '
+            print(command)
             os.system(command)
         else:
             for extension in extensions:
-                command = f"perl moss.pl -l {languageValue} Files/*{extension}"
+                command = command + f"Files/*{extension}"
             os.system(command)
 
         moveMoss(self.path)
@@ -171,5 +223,4 @@ class local:
             print("Already deleted \"Files\", no worries")
 
         mossBarPlot(f'{self.path}/mossReport.html', f'{self.path}/', '', '')
-
         os.chdir(wd)

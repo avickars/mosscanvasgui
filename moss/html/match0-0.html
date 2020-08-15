@@ -1,0 +1,60 @@
+<HTML>
+<HEAD>
+<TITLE>Files/mossHistogramVizualization.py</TITLE>
+</HEAD>
+<BODY BGCOLOR=white>
+<HR>
+Files/mossHistogramVizualization.py<p><PRE>
+import sys
+from bs4 import BeautifulSoup
+import pandas as pd
+import codecs
+import matplotlib.pyplot as plt
+import statistics as stat
+
+# Getting Moss html report
+htmlFile = codecs.open("/home/aidan/Documents/SFU Summer 2020 Co-op/DianaWork/C120 2020-1-timed-CW2_MOSS/All Together/mossReport.html", 'r')
+# htmlFile = codecs.open(sys.argv[1], 'r')
+
+# Setting the destination of the report
+<A NAME="0"></A><FONT color = #FF0000><A HREF="match0-1.html#0" TARGET="1"><IMG SRC="../bitmaps/tm_0_71.gif" ALT="other" BORDER="0" ALIGN=left></A>
+
+destination = ""
+
+# Reading html into a beautiful soup object
+soup = BeautifulSoup(htmlFile.read(), features="lxml")
+
+# Finding the table rows
+dataHTML = soup.find('table').find_all('tr')
+
+# Creating the dataframe to score the information
+data = pd.DataFrame(columns=["student1","student1_percent","student2","student2_percent","numLines"])
+
+# Scraping the report
+for dataIndv in dataHTML:
+    dataByLine = dataIndv.find_all('a')
+    numLines = dataIndv.find_all('td', {'align': 'right'})
+    # Testing for an empty list
+    if not dataByLine:
+        continue
+    s1 = dataByLine[0].contents[0]
+    s2 = dataByLine[1].contents[0]
+    newData = {"student1":s1[0:s1.find('(')],
+               "student1_percent":int(s1[s1.find('(')+1:s1.find('%')]),
+               "student2":s2[0:s2.find('(')],
+               "student2_percent":int(s2[s2.find('(')+1:s2.find('%')]),
+               "numLines":int(numLines[0].contents[0])}
+    data = data.append(newData,ignore_index=True)
+</FONT>
+data['mean'] = data.apply(lambda row:stat.mean([row['student1_percent'],row['student2_percent']]),axis=1)
+
+
+plt.hist(data['mean'], color = 'darkred', edgecolor = 'black',
+         bins = int(180/5))
+
+plt.show()
+
+print(data)</PRE>
+</PRE>
+</BODY>
+</HTML>

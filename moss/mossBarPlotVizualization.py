@@ -21,8 +21,6 @@ def sections(arg):
 
 
 def mossBarPlot(reportLocation, barplotDestination, courseName, assignmentName):
-    print("Loc: ", reportLocation)
-    print("Dest: ", barplotDestination)
     # Getting Moss html report
     htmlFile = codecs.open(reportLocation, 'r')
 
@@ -47,7 +45,11 @@ def mossBarPlot(reportLocation, barplotDestination, courseName, assignmentName):
     # Scraping the report
     for dataIndv in dataHTML:
         dataByLine = dataIndv.find_all('a')
+
         numLines = dataIndv.find_all('td', {'align': 'right'})
+        if len(numLines) == 0:
+            return
+
         # Testing for an empty list
         if not dataByLine:
             continue
@@ -87,3 +89,5 @@ def mossBarPlot(reportLocation, barplotDestination, courseName, assignmentName):
     )
 
     fig.write_html(destination + fileName)
+
+

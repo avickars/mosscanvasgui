@@ -44,7 +44,7 @@ def assignments():
                 className="sidebarcards"
             ),
             dbc.Collapse(
-                dbc.CardBody(children=[dcc.Dropdown(id="assignment-dropdown")], id="assignment-card-body"),
+                dbc.CardBody(children=[dcc.Dropdown(id="assignment-dropdown", optionHeight=120)], id="assignment-card-body"),
                 id="collapse-3"
             ),
         ]
@@ -114,12 +114,57 @@ def fileExtensions():
             ),
             dbc.Collapse(
                 dbc.CardBody(children=[
-                    html.H6("File Extensions"),
                     dcc.Input(placeholder="Enter the expected file extensions separated by a comma", id="fileExtension-input", className='user-inputs'),
-                    html.Small("NOTE: Only files with specified extensions will be downloaded and run through Moss.  Example: .c,.h"),
-                    html.Small("NOTE: If students submitted .zip files, specify this here."),
+                    html.Small("Notes", id="open-file-ext-modal", className="sub-text"),
+                    dbc.Modal(children=[
+                        dbc.ModalHeader("Notes", className="sub-text"),
+                        dbc.ModalBody(children=[
+                            html.Ul(children=[
+                                html.Li("Only files with specified extensions will be downloaded and run through Moss.  Example: .c,.h"),
+                                html.Li("If students submitted .zip files, specify this here."),
+                                html.Li("Example: \".py,.zip\".  This will download any python files, as well download any zip files and extract any python files in them")
+                            ])]),
+                        dbc.ModalFooter(
+                            dbc.Button("Close", id="close-file-ext-model", className="ml-auto")
+                        ),
+                    ], id="file-ext-modal"),
                 ]),
                 id="collapse-5"
+            ),
+        ],
+        className="card"
+    )
+
+
+def baseFiles():
+    return dbc.Card(
+        [
+            dbc.CardHeader(
+                dbc.Button("Base Files",
+                           id="group-6-toggle",
+                           className="sidebarbuttons"),
+                className="sidebarcards"
+            ),
+            dbc.Collapse(
+                dbc.CardBody(children=[
+                    html.H6("Base Files", style={"font-weight": "bold"}, className="no-bottom-space"),
+                    html.Small("What is this?", id="open-base-file-modal", className="sub-text"),
+                    dbc.Modal(children=[
+                        dbc.ModalHeader("What is a \"Base File?\""),
+                        dbc.ModalBody(children=[
+                            "A \"Base File\" contains code students are allowed to use in there assignment.  If these exist for the assignment you would like to run Moss on"
+                            "enter the path here.  If there are multiple base files, enter them on separate lines"]),
+                        dbc.ModalFooter(
+                            dbc.Button("Close", id="close-base-file-model", className="ml-auto")
+                        ),
+                    ], id="base-file-modal"),
+                    dcc.Textarea(
+                        id='base-file-textarea',
+                        placeholder="Enter the path to the Base Files separated by a comma",
+                        style={'width': '100%', 'height': 300, "overflow": "auto"},
+                    ),
+                ]),
+                id="collapse-6"
             ),
         ],
         className="card"
@@ -138,9 +183,9 @@ def settings(canvas):
             ),
             dbc.Collapse(
                 dbc.CardBody(children=[
-                    html.H6("Canvas Key"),
+                    html.H6("Canvas Key", style={"font-weight": "bold"}),
                     dcc.Input(placeholder="Enter your Canvas Key", id="canvas-api-key", value=canvas.getKey(), className='user-inputs'),
-                    html.Small("What is this?", id="open-canvas-key-modal"),
+                    html.Small("What is this?", id="open-canvas-key-modal", className="sub-text"),
                     dbc.Modal(children=[
                         dbc.ModalHeader("What is a \"Canvas Key?\""),
                         dbc.ModalBody(children=[
@@ -156,12 +201,15 @@ def settings(canvas):
                     ], id="canvas-key-modal"),
                     html.Br(),
                     html.Br(),
-                    html.H6("Source"),
-                    html.Small("What is this?", id="open-local-model"),
+                    html.H6("Source", style={"font-weight": "bold"}, className="no-bottom-space"),
+                    html.Small("What is this?", id="open-local-model", className="sub-text"),
                     dbc.Modal(children=[
-                        dbc.ModalHeader("What form does this need to be in?"),
+                        dbc.ModalHeader("Local or Canvas"),
                         dbc.ModalBody(children=[
-                            "Needs to have the form that:",
+                            "Specify whether you would like to run Moss on assignments on Canvas or on assignments you have already downloaded.  If you would like to "
+                            "run Moss on assignments you have already downloaded, the directory on be in one of two forms.  One, a directory with sub-directories that contain"
+                            "the files for each student.  If this is the case select \"By Directory\" below.  Two, a directory with all files for every student contained in that "
+                            "directory.  If this is the case select \"By File\" ",
                         ]),
                         dbc.ModalFooter(
                             dbc.Button("Close", id="close-local-model", className="ml-auto")

@@ -15,3 +15,7 @@
 #prev-moss-report-header{
     font-weight: bold;
 }
+
+.hidden{
+    visibility: hidden;
+}

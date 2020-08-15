@@ -4,10 +4,32 @@ import dash_core_components as dcc
 
 
 def execute():
-    return html.Div(
-        dbc.Button("Download",
-                   className="sidebarbuttons", id='download-button', disabled=True),
-        id="execute-container")
+    return dbc.Card(
+        [
+            dbc.CardHeader(
+                dbc.Button("Download",
+                           id="right-group-2-toggle",
+                           className="sidebarbuttons"),
+                className="sidebarcards"
+            ),
+            dbc.Collapse(
+                dbc.CardBody(children=[
+                    dbc.Button("Download Requested Assignments",
+                               id='download-button',
+                               className="sidebarbuttons",
+                               disabled=True),
+
+                ]),
+                id="right-collapse-2"
+            ),
+        ],
+        className="card"
+    )
+    #
+    # return html.Div(
+    #     dbc.Button("Download",
+    #                className="sidebarbuttons", id='download-button', disabled=True),
+    #     id="execute-container")
 
 
 def mossSideBar():
@@ -42,32 +64,9 @@ def mossSideBar():
     )
 
 
-def placeHolderToggle():
-    return dbc.Card(
-        [
-            dbc.CardHeader(
-                dbc.Button("Moss",
-                           id="right-group-2-toggle",
-                           className="sidebarbuttons"),
-                className="sidebarcards"
-            ),
-            dbc.Collapse(
-                dbc.CardBody(children=[
-                    dbc.Button("Run",
-                               id="palceholder",
-                               className="sidebarbuttons"),
-
-                ]),
-                id="right-collapse-2"
-            ),
-        ],
-        className="card"
-    )
-
-
 def results():
-    return html.Div("Moss Results", id='results')
+    return html.Div("Moss Results", id='results', className="hidden")
 
 
 def results2():
-    return html.Div("Moss Results", id='results2')
+    return html.Div("Moss Results", id='results2', className="hidden")

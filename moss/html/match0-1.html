@@ -1,17 +1,19 @@
 <HTML>
 <HEAD>
-<TITLE>Files/mossHistogramVizualization.py</TITLE>
+<TITLE>courses/Sandbox__diana__63020711/APIAssignment/submissions/Mary_Doe/</TITLE>
 </HEAD>
 <BODY BGCOLOR=white>
 <HR>
-Files/temp.py<p><PRE>
+courses/Sandbox__diana__63020711/APIAssignment/submissions/John_Doe/<p><PRE>
+&gt;&gt;&gt;&gt; file: courses/Sandbox__diana__63020711/APIAssignment/submissions/John_Doe/JohnDoe_mossScatterPlotVizualization.py
+<A NAME="0"></A><FONT color = #FF0000><A HREF="match0-0.html#0" TARGET="0"><IMG SRC="../bitmaps/tm_0_99.gif" ALT="other" BORDER="0" ALIGN=left></A>
+
 import sys
 from bs4 import BeautifulSoup
 import pandas as pd
 import codecs
 import plotly.graph_objects as go
 import statistics as stat
-import plotly.express as px
 
 def sections(arg):
     if arg&gt;80:
@@ -29,16 +31,14 @@ def sections(arg):
 
 
 # Getting Moss html report
-htmlFile = codecs.open("/home/aidan/Documents/SFU Summer 2020 Co-op/DianaWork/0C120-more CW assigs_MOSS/all_submissions_74/Question_5270/mossReport.html", 'r')
+htmlFile = codecs.open("/home/aidan/Documents/SFU Summer 2020 Co-op/DianaWork/C120 2020-1-timed-CW2_MOSS/All Together/mossReport.html", 'r')
 
 # Setting the destination of the report
-destination = "/home/aidan/Documents/SFU Summer 2020 Co-op/DianaWork/0C120-more CW assigs_MOSS/all_submissions_74/Question_5270/"
+destination = "/home/aidan/Documents/SFU Summer 2020 Co-op/DianaWork/C120 2020-1-timed-CW2_MOSS/All Together/"
 
 plotTitle = "All Questions"
 
-<A NAME="0"></A><FONT color = #FF0000><A HREF="match0-0.html#0" TARGET="0"><IMG SRC="../bitmaps/tm_0_35.gif" ALT="other" BORDER="0" ALIGN=left></A>
-
-fileName = "Submissions_Scatterplot.html"
+fileName = "allQuestions_Scatterplot.html"
 
 # Reading html into a beautiful soup object
 soup = BeautifulSoup(htmlFile.read(), features="lxml")
@@ -64,43 +64,18 @@ for dataIndv in dataHTML:
                "student2_percent":int(s2[s2.find('(')+1:s2.find('%')]),
                "numLines":int(numLines[0].contents[0])}
     data = data.append(newData,ignore_index=True)
-</FONT>
+
 if plotTitle == "":
     plotTitle = "Moss Assignment Similarity Breakdown"
+
 
 fig = go.Figure(go.Scatter(
     x = data["student1_percent"],
     y = data["student2_percent"],
     mode = 'markers',
     hovertemplate = 'Student 1: %{x}% &lt;br&gt; Student 2: %{y}% &lt;extra&gt;&lt;/extra&gt;',
-    marker_color = 'darkred',
-    name = "Student v. Student"
+    marker_color = 'darkred'
 ))
-
-df1 = data['student1'].str.contains('chegg')
-df1 = df1.to_frame()
-
-df2 = data['student1'].str.contains('chegg')
-df2 = df2.to_frame()
-dataBool = df1.merge(data['student2'].str.contains('chegg'), left_index=True, right_index=True)
-
-# Extracting rows that conatain a chegg solution
-dataChegg = pd.concat([data[data['student1'].str.contains('chegg')], data[data['student2'].str.contains('chegg')]])
-
-# Removing duplicates
-dataChegg = dataChegg.drop_duplicates()
-
-fig.add_trace(go.Scatter(
-    x = dataChegg["student1_percent"],
-    y = dataChegg["student2_percent"],
-    mode = 'markers',
-    marker_color = 'orange',
-    hovertemplate = 'Student 1: %{x}% &lt;br&gt; Chegg: %{y}% &lt;extra&gt;&lt;/extra&gt;',
-    name = "Chegg v. Student"
-    )
-)
-
-
 
 fig.update_layout(
     xaxis = dict(
@@ -112,7 +87,7 @@ fig.update_layout(
     title = plotTitle
 )
 fig.write_html(destination + fileName)
-</PRE>
+</FONT></PRE>
 </PRE>
 </BODY>
 </HTML>

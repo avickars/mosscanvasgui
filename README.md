@@ -6,7 +6,9 @@ This Dash application was created to streamline the process of download assignme
 
 1. Run python app.py
 2. Log into canvas and get your Canvas Key.  If you don't know how to do this, instructions are located in "What is this?" under "Canvas Key" in "Settings" in the app.  See the picture below
+
 ![](README_stuff/settings.png)
+
 3. Enter your Canvas Key in the text box under "Canvas Key".  Now shutdown the app and restart it.  Your key has now been written to a text file "canvas/key.txt"
 
 ### Running the App on Canvas

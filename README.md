@@ -4,7 +4,8 @@ This Dash application was created to streamline the process of download assignme
 
 ## Getting Started
 
-1. Run python app.py
+1. Download all the dependencies (listed at the bottom) or run in the included virtual environment (On linux/Mac: source venv/bin/activate) (Note: you will still need to download perl)
+2. Run python app.py (first download all the dependencies or run in a virtual environment)
 2. Log into canvas and get your Canvas Key.  If you don't know how to do this, instructions are located in "What is this?" under "Canvas Key" in "Settings" in the app.  See the picture below
 
 ![](README_stuff/settings.png)

@@ -126,7 +126,7 @@ def fileExtensions():
             ),
             dbc.Collapse(
                 dbc.CardBody(children=[
-                    dcc.Input(placeholder="Enter the expected file extensions separated by a comma", id="fileExtension-input", className='user-inputs'),
+                    dcc.Input(placeholder="Enter file extensions separated by a comma", id="fileExtension-input", className='user-inputs'),
                     html.Small("Notes", id="open-file-ext-modal", className="sub-text"),
                     dbc.Modal(children=[
                         dbc.ModalHeader("Notes", className="sub-text"),

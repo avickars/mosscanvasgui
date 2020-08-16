@@ -9,8 +9,6 @@ import shutil
 from bs4 import BeautifulSoup
 import codecs
 from moss.mossBarPlotVizualization import mossBarPlot
-import sys
-import distutils
 
 
 # This function returns extensions, or names we do not want to extract from a zip file

@@ -47,8 +47,6 @@ def mossBarPlot(reportLocation, barplotDestination, courseName, assignmentName):
         dataByLine = dataIndv.find_all('a')
 
         numLines = dataIndv.find_all('td', {'align': 'right'})
-        if len(numLines) == 0:
-            return
 
         # Testing for an empty list
         if not dataByLine:

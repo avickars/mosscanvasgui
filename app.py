@@ -86,6 +86,7 @@ def toggle_modal(n1, n2, is_open):
         return not is_open
     return is_open
 
+
 # Toggle far sidebar->base-file->modal
 @app.callback(
     Output("base-file-modal", "is_open"),
@@ -96,6 +97,7 @@ def toggle_modal(n1, n2, is_open):
     if n1 or n2:
         return not is_open
     return is_open
+
 
 # Toggle far sidebar->file-extensions->modal
 @app.callback(
@@ -112,11 +114,13 @@ def toggle_modal(n1, n2, is_open):
 # Dynamically update the courses in the course drop down when the API key changes
 @app.callback(
     Output('course-dropdown', 'options'),
-    [Input('canvas-api-key', 'value')]
+    [Input('canvas-api-key', 'value'),
+     Input('semester-year', 'value'),
+     Input('semester-season', 'value')]
 )
-def updateCoursesDropdown(value):
+def updateCoursesDropdown(value, semesterYear, semesterSeason):
     canvasObject.changeKey(value)
-    return canvasObject.getCourses()
+    return canvasObject.getCourses(semesterYear, semesterSeason)
 
 
 # Dynamically update assignment dropdown based on course dropdown
@@ -137,11 +141,13 @@ def updateAssignmentsDropdown(value):
      Input('fileExtension-input', 'value'),
      Input('local-select', 'value'),
      Input("assignment-path", 'value'),
-     Input('base-file-textarea', 'value')]
+     Input('base-file-textarea', 'value'),
+     Input('semester-year', 'value'),
+     Input('semester-season', 'value')]
 )
-def updateTableData(courseNumber, assignmentNumber, languageValue, fileExtensionValue, localCanvasValue, assignmentPath,baseFile):
+def updateTableData(courseNumber, assignmentNumber, languageValue, fileExtensionValue, localCanvasValue, assignmentPath, baseFile, semesterYear, semesterSeason):
     if localCanvasValue == 'canvas':
-        df = canvasObject.getSubmissions(courseNumber, assignmentNumber, languageValue, fileExtensionValue)
+        df = canvasObject.getSubmissions(courseNumber, assignmentNumber, languageValue, fileExtensionValue, semesterYear, semesterSeason)
         return df.to_dict('records'), [{"name": i, "id": i} for i in df.columns]
     else:
         localObject.changePath(assignmentPath)
@@ -289,7 +295,7 @@ def mossReportLink(courseNumber, assignmentNumber, resultsDummyValue, localSelec
         Input('fileExtension-input', 'value'),
         Input('local-select', 'value'),
         Input('directory-select', 'value'),
-        Input('base-file-textarea','value')
+        Input('base-file-textarea', 'value')
     ]
 )
 def executeFileSimilarity(numClicks, data, selectedRows, courseValue, assignmentValue, languageValue, fileExtensionValue, localDirectory, fileDirectory, baseFiles):
@@ -345,14 +351,16 @@ def toggle_accordion(n1, n2, is_open1, is_open2):
      Output("canvas-api-key", "disabled"),
      Output("group-1-toggle", "disabled"),
      Output("group-3-toggle", "disabled"),
-     Output('directory-select', 'options')],
+     Output('directory-select', 'options'),
+     Output('semester-season', "disabled"),
+     Output('semester-year', "disabled")],
     [Input('local-select', 'value')]
 )
 def toggleLocal(value):
     if value == 'local':
-        return False, True, True, True, [{'label': 'By File', 'value': 'File'}, {'label': 'By Directory', 'value': 'directory'}]
+        return False, True, True, True, [{'label': 'By File', 'value': 'File'}, {'label': 'By Directory', 'value': 'directory'}], True, True
     else:
-        return True, False, False, False, [{'label': 'By File', 'value': 'File', 'disabled': True}, {'label': 'By Directory', 'value': 'directory', 'disabled': True}]
+        return True, False, False, False, [{'label': 'By File', 'value': 'File', 'disabled': True}, {'label': 'By Directory', 'value': 'directory', 'disabled': True}], False, False
 
 
 # Toggle far Right_bar->settings->modal

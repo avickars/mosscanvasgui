@@ -26,6 +26,49 @@ def exists(directory, extension):
     return False
 
 
+# This function tests whether the passed semesters are the same
+def semesterChecker(userYear, userSeason, courseYear, courseMonth):
+    if userSeason == 'all' and userYear == 0:
+        return True
+    elif userSeason == 'all' and str(userYear) == courseYear:
+        return True
+    elif userYear == 0:
+        # Getting the course season, in case the course doesn't fall into one of these, we will print it to be safe
+        if courseMonth == '09':
+            courseSeason = 'fall'
+        elif courseMonth == '01':
+            courseSeason = 'spring'
+        elif courseMonth == '05':
+            courseSeason = 'summer'
+        else:
+            courseSeason = userSeason
+
+        # Testing of the course season equals the user season
+        if courseSeason == userSeason:
+            return True
+    else:
+        # Testing right away if the course is in the right year, if no just return False immediately as we don't want to print it
+        if str(userYear) != courseYear:
+            return False
+
+        if userSeason == 'all':
+            return True
+
+        # Getting the course season, in case the course doesn't fall into one of these, we will print it to be safe
+        if courseMonth == '09':
+            courseSeason = 'fall'
+        elif courseMonth == '01':
+            courseSeason = 'spring'
+        elif courseMonth == '05':
+            courseSeason = 'summer'
+        else:
+            courseSeason = userSeason
+
+        # Testing of the course season equals the user season
+        if courseSeason == userSeason:
+            return True
+
+
 # This function reads the key (if it exists) from the json file key.txt and returns the key
 def readKey(path):
     try:
@@ -153,7 +196,7 @@ def downloadSubmission(canvasObject, assignmentNumber, courseNumber, submission,
     createDirectory(submissionsPath)
 
     # Updated submissions path with course name
-    submissionsPath = submissionsPath + f'/{courseName.replace(" ", "_").replace("-", "").replace("/","_")}'
+    submissionsPath = submissionsPath + f'/{courseName.replace(" ", "_").replace("-", "").replace("/", "_")}'
 
     # Creating a folder to store the course results if it doesn't already exist
     # Note: Moss doesn't like path names with spaces or dashes for some reason, so I am getting rid of them
@@ -311,6 +354,7 @@ def moveMoss(destination):
     mossReport.write(reportHTMLTop.encode())
     mossReport.close()
 
+
 class canvas:
     def __init__(self):
         self.__path = 'canvas/'
@@ -387,7 +431,9 @@ class canvas:
         self.__canvas = auth(self.__path, self.__key)
 
     # Method that queries the API to get a list of the users courses from Canvas
-    def getCourses(self):
+    def getCourses(self, semesterYear, semesterSeason):
+        if semesterYear is None or semesterSeason is None:
+            return [{"label": "Invalid semester detected, check settings", "value": "Error"}]
         # Getting the canvas object
         canvasObject = self.__canvas
 
@@ -397,7 +443,8 @@ class canvas:
         try:
             for course in courses:
                 try:
-                    courseData.append({"label": course.name, "value": course.id})
+                    if semesterChecker(semesterYear, semesterSeason, course.start_at[0:4], course.start_at[5:7]):
+                        courseData.append({"label": course.name, "value": course.id})
                 except AttributeError:
                     continue
             return courseData
@@ -424,10 +471,16 @@ class canvas:
         return assignmentList
 
     # Getting all the requested submissions, and outputting them in a datatable
-    def getSubmissions(self, courseNumber, assignmentNumber, language, fileExtensions):
+    def getSubmissions(self, courseNumber, assignmentNumber, language, fileExtensions, semesterYear, semesterSeason):
         # Error handling if no options have been selected or there is a bad canvas key
         if courseNumber is None or assignmentNumber is None or language is None or fileExtensions is None:
             errorData = pd.DataFrame(data={"Error": ['At least one of Course, Assignment, Language, or File Extension has not been selected']})
+            if courseNumber == 'Error' or assignmentNumber == 'Error':
+                errorData = errorData.append({'Error': "No Canvas Key or Invalid Canvas Key Detected"}, ignore_index=True)
+            return errorData
+
+        if semesterYear is None or semesterSeason is None:
+            errorData = pd.DataFrame(data={"Error": ['Invalid Semester or Year Detected, check Settings.']})
             if courseNumber == 'Error' or assignmentNumber == 'Error':
                 errorData = errorData.append({'Error': "No Canvas Key or Invalid Canvas Key Detected"}, ignore_index=True)
             return errorData

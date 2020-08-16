@@ -1,11 +1,23 @@
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
-from canvas.canvas_class import canvas
+from datetime import date
 
 
-# from canvas.canvasKey import readKey
-# from canvas.canvasMethods import getCourses, getAssignments
+def getSeason():
+    month = int(str(date.today())[5:7])
+    month = int(month)
+    if 9 <= month <= 12:
+        return 'fall'
+    elif 1 <= month <= 4:
+        return 'spring'
+    else:
+        return 'summer'
+
+def getYear():
+    return int(str(date.today())[0:4])
+
+
 
 
 def courses(canvas):
@@ -22,7 +34,7 @@ def courses(canvas):
             ),
             dbc.Collapse(
                 # dbc.CardBody(children=[dash_table.DataTable(data=readCourseDataFromApp('canvas/'))], id="card-body"),
-                dbc.CardBody(children=[dcc.Dropdown(options=canvas.getCourses(),
+                dbc.CardBody(children=[dcc.Dropdown(options=canvas.getCourses(getYear(), getSeason()),
                                                     id="course-dropdown",
                                                     optionHeight=120)], id="card-body"),
                 id="collapse-1"
@@ -199,6 +211,15 @@ def settings(canvas):
                             dbc.Button("Close", id="close-canvas-key-model", className="ml-auto")
                         ),
                     ], id="canvas-key-modal"),
+                    html.Br(),
+                    html.Br(),
+                    html.H6("Semester", style={"font-weight": "bold", "margin-bottom": "4px", "margin-top": "6px"}, className="no-bottom-space"),
+                    dcc.Dropdown(id="semester-season", disabled=False, options=[{"label":"Summer","value":"summer"},
+                                                                                {"label":"Fall","value":"fall"},
+                                                                                {"label":"Spring","value":"spring"},
+                                                                                {"label":"All Semesters","value":"all"}], value=getSeason()),
+                    dcc.Input(id="semester-year", type="number", value=getYear(),style={"width":"100%"}),
+                    html.Small("Enter \"0\" for all years"),
                     html.Br(),
                     html.Br(),
                     html.H6("Source", style={"font-weight": "bold"}, className="no-bottom-space"),

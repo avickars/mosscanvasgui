@@ -20,7 +20,6 @@ navBar = dbc.Navbar(children=[
         # Use row and col to control vertical alignment of logo / brand
         dbc.Row(
             [
-                dbc.Col(html.Img(src=app.get_asset_url('/CMPTLogo.png'), alt="Image N/A", height="30px")),
                 dbc.Col(dbc.NavbarBrand("CS Assignment Similarity Checker", className="ml-2")),
             ],
             align="center",

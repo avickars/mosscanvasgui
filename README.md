@@ -107,3 +107,7 @@ The following dependencies are required:
 - Further work can be done on unzipping files.  Unzipping files is still error prone because students often submit incorrect files or bad file names etc.
 - Additional error handling to minimize the need for refreshing the page
     - This one is a bit tricky, as Dash is not really built for this type of application.
+
+## Questions
+
+Email Aidan Vickars at avickars@sfu.ca

@@ -92,7 +92,7 @@ Then when you are ready, run Moss and the results will appear.
 * Not all submissions were downloaded, or the app was unable to unzip files properly resulting in an error
     * Unfortunately Canvas has minimal abilities to restrict what students actually submit, so this app really is only as good as what restrictions the instructor places on submissions (like what file types students can submit) and what students submit themselves.
     * This app performs better when students submit their assignments as individual files and not as one zip file.  This is because:
-        * The zip file becomes as block box, as the app cannot see what is in the zip file before downloading it.  Where as if students submit individual files, the app can see exactly what students have submitted.  This is reflected in the submissions table in the app.  Instructors can then specify what exactly they would like to download and run through Moss.
+        * The zip file becomes a black box so to speak, as the app cannot see what is in the zip file before downloading it.  Where as if students submit individual files, the app can see exactly what students have submitted.  This is reflected in the submissions table in the app.  Instructors can then specify what exactly they would like to download and run through Moss.
 * The app did not finish downloading the assignment submissions
     * This is rare however it did occur in testing when trying to download assignments submissions where the total was approximately 15gb.  In this case the user will need to directly download them from Canvas and not use this app.
 * Not all of my students submissions are showing up in the submissions table

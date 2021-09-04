@@ -1,10 +1,10 @@
 # Moss Canvas GUI
 
-This Dash application was created to streamline the process of download assignments form canvas and running them through Moss.
+This Dash application was created to streamline the process of downloading assignments from canvas and running them through Moss.
 
 ## Important
 
-For obvious license reasons I have removed Moss from this repository.  Any use wishing to use this app must have licenses Moss from the creators.  Uses who have this should place is in the folder entitled "moss".  The folder "moss" must contain a file "moss.pl" for the app to work.
+For obvious license reasons I have removed Moss from this repository.  Any user wishing to use this app with Moss must have a license and must supply their own version of it.  Uses who have this should place is in the folder entitled "moss".  The folder "moss" must contain a file "moss.pl" for the app to work.
 
 ## Getting Started
 
